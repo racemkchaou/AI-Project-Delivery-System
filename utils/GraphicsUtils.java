@@ -99,7 +99,7 @@ public class GraphicsUtils {
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(bgColor.darker(), 2),
-                BorderFactory.createEmptyBorder(6, 15, 6, 15))); // Réduire le padding (était 10, 20, 10, 20)
+                BorderFactory.createEmptyBorder(6, 15, 6, 15)));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         // Effet hover

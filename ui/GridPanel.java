@@ -18,10 +18,12 @@ public class GridPanel extends JPanel {
 
     public GridPanel() {
         setBackground(new Color(240, 240, 240));
+        updatePreferredSize();
+    }
 
+    private void updatePreferredSize() {
         int gridWidth = OFFSET * 2 + (GridData.COLS - 1) * CELL;
         int gridHeight = OFFSET * 2 + (GridData.ROWS - 1) * CELL;
-
         setPreferredSize(new Dimension(gridWidth, gridHeight));
     }
 
@@ -29,43 +31,53 @@ public class GridPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        drawCosts(g2d);
-        drawGrid(g2d);
-        drawIntersections(g2d);
-        drawEntities(g2d);
-        drawPaths(g2d);
-        drawTrucks(g2d);
+        // Calculer le décalage pour centrer la grille
+        int gridWidth = (GridData.COLS - 1) * CELL;
+        int gridHeight = (GridData.ROWS - 1) * CELL;
+
+        int xOffset = (getWidth() - gridWidth) / 2;
+        int yOffset = (getHeight() - gridHeight) / 2;
+
+        // S'assurer que les offsets ne sont pas négatifs
+        xOffset = Math.max(xOffset, OFFSET);
+        yOffset = Math.max(yOffset, OFFSET);
+
+        drawCosts(g2d, xOffset, yOffset);
+        drawGrid(g2d, xOffset, yOffset);
+        drawIntersections(g2d, xOffset, yOffset);
+        drawEntities(g2d, xOffset, yOffset);
+        drawPaths(g2d, xOffset, yOffset);
+        drawTrucks(g2d, xOffset, yOffset);
     }
 
-    private void drawGrid(Graphics2D g2d) {
+    private void drawGrid(Graphics2D g2d, int xOffset, int yOffset) {
         g2d.setColor(Color.LIGHT_GRAY);
         g2d.setStroke(new BasicStroke(1));
 
-        int gridStartX = OFFSET;
-        int gridStartY = OFFSET;
         int gridWidth = (GridData.COLS - 1) * CELL;
         int gridHeight = (GridData.ROWS - 1) * CELL;
 
         // Lignes horizontales
         for (int i = 0; i < GridData.ROWS; i++) {
-            int y = gridStartY + i * CELL;
-            g2d.drawLine(gridStartX, y, gridStartX + gridWidth, y);
+            int y = yOffset + i * CELL;
+            g2d.drawLine(xOffset, y, xOffset + gridWidth, y);
         }
 
         // Lignes verticales
         for (int i = 0; i < GridData.COLS; i++) {
-            int x = gridStartX + i * CELL;
-            g2d.drawLine(x, gridStartY, x, gridStartY + gridHeight);
+            int x = xOffset + i * CELL;
+            g2d.drawLine(x, yOffset, x, yOffset + gridHeight);
         }
     }
 
-    private void drawIntersections(Graphics2D g2d) {
+    private void drawIntersections(Graphics2D g2d, int xOffset, int yOffset) {
         g2d.setColor(Color.BLACK);
         for (int y = 0; y < GridData.ROWS; y++) {
             for (int x = 0; x < GridData.COLS; x++) {
-                int px = OFFSET + x * CELL;
-                int py = OFFSET + y * CELL;
+                int px = xOffset + x * CELL;
+                int py = yOffset + y * CELL;
                 g2d.fillOval(px - 4, py - 4, 8, 8);
 
                 // Coordonnées
@@ -77,16 +89,16 @@ public class GridPanel extends JPanel {
         }
     }
 
-    private void drawCosts(Graphics2D g2d) {
+    private void drawCosts(Graphics2D g2d, int xOffset, int yOffset) {
         g2d.setFont(new Font("Arial", Font.BOLD, 12));
 
         // Coûts horizontaux
         for (int y = 0; y < GridData.ROWS; y++) {
             for (int x = 0; x < GridData.COLS - 1; x++) {
                 int cost = GridData.H_COSTS[y][x];
-                int x1 = OFFSET + x * CELL;
-                int x2 = OFFSET + (x + 1) * CELL;
-                int yPos = OFFSET + y * CELL;
+                int x1 = xOffset + x * CELL;
+                int x2 = xOffset + (x + 1) * CELL;
+                int yPos = yOffset + y * CELL;
 
                 int centerX = (x1 + x2) / 2;
                 drawCostOnHorizontalLine(g2d, String.valueOf(cost), centerX, yPos);
@@ -97,9 +109,9 @@ public class GridPanel extends JPanel {
         for (int y = 0; y < GridData.ROWS - 1; y++) {
             for (int x = 0; x < GridData.COLS; x++) {
                 int cost = GridData.V_COSTS[y][x];
-                int xPos = OFFSET + x * CELL;
-                int y1 = OFFSET + y * CELL;
-                int y2 = OFFSET + (y + 1) * CELL;
+                int xPos = xOffset + x * CELL;
+                int y1 = yOffset + y * CELL;
+                int y2 = yOffset + (y + 1) * CELL;
 
                 int centerY = (y1 + y2) / 2;
                 drawCostOnVerticalLine(g2d, String.valueOf(cost), xPos, centerY);
@@ -137,16 +149,16 @@ public class GridPanel extends JPanel {
         }
     }
 
-    private void drawEntities(Graphics2D g2d) {
-        drawStores(g2d);
-        drawCustomers(g2d);
-        drawTunnels(g2d);
+    private void drawEntities(Graphics2D g2d, int xOffset, int yOffset) {
+        drawStores(g2d, xOffset, yOffset);
+        drawCustomers(g2d, xOffset, yOffset);
+        drawTunnels(g2d, xOffset, yOffset);
     }
 
-    private void drawStores(Graphics2D g2d) {
+    private void drawStores(Graphics2D g2d, int xOffset, int yOffset) {
         g2d.setStroke(new BasicStroke(2));
         for (Store store : GridData.getStores()) {
-            Point p = toPoint(store.getPosition());
+            Point p = toPoint(store.getPosition(), xOffset, yOffset);
             g2d.setColor(store.getColor());
             g2d.fillRect(p.x - 10, p.y - 10, 20, 20);
             g2d.setColor(Color.BLACK);
@@ -156,9 +168,9 @@ public class GridPanel extends JPanel {
         }
     }
 
-    private void drawCustomers(Graphics2D g2d) {
+    private void drawCustomers(Graphics2D g2d, int xOffset, int yOffset) {
         for (Customer customer : GridData.getCustomers()) {
-            Point p = toPoint(customer.getPosition());
+            Point p = toPoint(customer.getPosition(), xOffset, yOffset);
             int[] xs = { p.x, p.x - 10, p.x + 10 };
             int[] ys = { p.y - 10, p.y + 10, p.y + 10 };
             g2d.setColor(customer.getColor());
@@ -170,10 +182,10 @@ public class GridPanel extends JPanel {
         }
     }
 
-    private void drawTunnels(Graphics2D g2d) {
+    private void drawTunnels(Graphics2D g2d, int xOffset, int yOffset) {
         for (Tunnel tunnel : GridData.getTunnels()) {
-            Point p1 = toPoint(tunnel.getEntrance());
-            Point p2 = toPoint(tunnel.getExit());
+            Point p1 = toPoint(tunnel.getEntrance(), xOffset, yOffset);
+            Point p2 = toPoint(tunnel.getExit(), xOffset, yOffset);
 
             g2d.setColor(tunnel.getColor());
             Stroke dashed = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
@@ -191,7 +203,7 @@ public class GridPanel extends JPanel {
         }
     }
 
-    private void drawPaths(Graphics2D g2d) {
+    private void drawPaths(Graphics2D g2d, int xOffset, int yOffset) {
         if (allPaths.isEmpty())
             return;
 
@@ -204,8 +216,8 @@ public class GridPanel extends JPanel {
                 Color color = palette[idx % palette.length];
 
                 for (int i = 0; i < path.size() - 1; i++) {
-                    Point p1 = toPoint(path.get(i));
-                    Point p2 = toPoint(path.get(i + 1));
+                    Point p1 = toPoint(path.get(i), xOffset, yOffset);
+                    Point p2 = toPoint(path.get(i + 1), xOffset, yOffset);
                     GraphicsUtils.drawArrow(g2d, p1, p2, color);
                 }
 
@@ -214,9 +226,9 @@ public class GridPanel extends JPanel {
         }
     }
 
-    private void drawTrucks(Graphics2D g2d) {
+    private void drawTrucks(Graphics2D g2d, int xOffset, int yOffset) {
         for (Position truckPos : truckPositions) {
-            Point p = toPoint(truckPos);
+            Point p = toPoint(truckPos, xOffset, yOffset);
             g2d.setColor(Color.YELLOW);
             g2d.fillOval(p.x - 10, p.y - 10, 20, 20);
             g2d.setColor(Color.BLACK);
@@ -225,8 +237,8 @@ public class GridPanel extends JPanel {
         }
     }
 
-    private Point toPoint(Position pos) {
-        return new Point(OFFSET + pos.x * CELL, OFFSET + pos.y * CELL);
+    private Point toPoint(Position pos, int xOffset, int yOffset) {
+        return new Point(xOffset + pos.x * CELL, yOffset + pos.y * CELL);
     }
 
     public List<Position> computePath(Position startPos, String directions) {
@@ -258,6 +270,7 @@ public class GridPanel extends JPanel {
     public void reset() {
         allPaths.clear();
         truckPositions.clear();
+        updatePreferredSize();
         repaint();
     }
 

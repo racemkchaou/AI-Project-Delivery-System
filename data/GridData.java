@@ -6,12 +6,12 @@ import java.util.*;
 
 public class GridData {
 
-    public static final int ROWS = 8;
-    public static final int COLS = 8;
+    public static int ROWS = 8;
+    public static int COLS = 8;
 
     // Coûts des segments
-    public static int[][] H_COSTS = new int[ROWS][COLS - 1];
-    public static int[][] V_COSTS = new int[ROWS - 1][COLS];
+    public static int[][] H_COSTS;
+    public static int[][] V_COSTS;
 
     // Entités
     private static List<Store> stores = new ArrayList<>();
@@ -19,7 +19,89 @@ public class GridData {
     private static List<Tunnel> tunnels = new ArrayList<>();
 
     static {
+        initArrays();
         initTestData();
+    }
+
+    private static void initArrays() {
+        H_COSTS = new int[ROWS][COLS - 1];
+        V_COSTS = new int[ROWS - 1][COLS];
+    }
+
+    public static void configure(GridConfiguration config) {
+        ROWS = config.getRows();
+        COLS = config.getColumns();
+
+        // Réinitialiser les tableaux avec les nouvelles dimensions
+        initArrays();
+
+        // Générer les données
+        generateData(config);
+    }
+
+    private static void generateData(GridConfiguration config) {
+        stores.clear();
+        customers.clear();
+        tunnels.clear();
+
+        Random rand = new Random();
+
+        // Initialiser les coûts horizontaux
+        for (int r = 0; r < ROWS; r++) {
+            for (int c = 0; c < COLS - 1; c++) {
+                // Probabilité d'obstacle basée sur numObstacles
+                if (config.getNumObstacles() > 0 && rand.nextInt(100) < (config.getNumObstacles() * 2)) {
+                    H_COSTS[r][c] = 0; // Obstacle
+                } else {
+                    H_COSTS[r][c] = rand.nextInt(4) + 1; // 1-4
+                }
+            }
+        }
+
+        // Initialiser les coûts verticaux
+        for (int r = 0; r < ROWS - 1; r++) {
+            for (int c = 0; c < COLS; c++) {
+                if (config.getNumObstacles() > 0 && rand.nextInt(100) < (config.getNumObstacles() * 2)) {
+                    V_COSTS[r][c] = 0; // Obstacle
+                } else {
+                    V_COSTS[r][c] = rand.nextInt(4) + 1; // 1-4
+                }
+            }
+        }
+
+        // Générer des positions aléatoires uniques
+        Set<Position> usedPositions = new HashSet<>();
+
+        // Ajouter les magasins
+        for (int i = 0; i < config.getNumStores(); i++) {
+            Position pos = getRandomPosition(rand, usedPositions);
+            stores.add(new Store(pos, "S" + (i + 1), Color.GRAY));
+        }
+
+        // Ajouter les clients
+        for (int i = 0; i < config.getNumCustomers(); i++) {
+            Position pos = getRandomPosition(rand, usedPositions);
+            customers.add(new Customer(pos, "C" + (i + 1), Color.GREEN));
+        }
+
+        // Ajouter les tunnels
+        for (int i = 0; i < config.getNumTunnels(); i++) {
+            Position entrance = getRandomPosition(rand, usedPositions);
+            Position exit = getRandomPosition(rand, usedPositions);
+            tunnels.add(new Tunnel(entrance, exit, "T" + (i + 1), Color.ORANGE));
+        }
+    }
+
+    private static Position getRandomPosition(Random rand, Set<Position> usedPositions) {
+        Position pos;
+        do {
+            int x = rand.nextInt(COLS);
+            int y = rand.nextInt(ROWS);
+            pos = new Position(x, y);
+        } while (usedPositions.contains(pos));
+
+        usedPositions.add(pos);
+        return pos;
     }
 
     private static void initTestData() {
@@ -43,7 +125,7 @@ public class GridData {
             }
         }
 
-        // Ajouter les entités
+        // Ajouter les entités par défaut
         stores.add(new Store(new Position(1, 1), "S1", Color.GRAY));
         stores.add(new Store(new Position(6, 5), "S2", Color.GRAY));
 

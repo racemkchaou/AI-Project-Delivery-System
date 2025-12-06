@@ -11,9 +11,11 @@ import java.util.List;
 public class ControlPanel extends JPanel {
 
     private GridPanel gridPanel;
+    private MainApp mainApp;
 
-    public ControlPanel(GridPanel gridPanel) {
+    public ControlPanel(GridPanel gridPanel, MainApp mainApp) {
         this.gridPanel = gridPanel;
+        this.mainApp = mainApp;
         initComponents();
     }
 
@@ -22,14 +24,12 @@ public class ControlPanel extends JPanel {
         setBackground(new Color(240, 248, 255));
         setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(70, 130, 180), 2),
-                BorderFactory.createEmptyBorder(8, 10, 8, 10))); // Réduire le padding
+                BorderFactory.createEmptyBorder(8, 10, 8, 10)));
 
         add(createTitleSection());
-        add(Box.createVerticalStrut(10)); // Réduire l'espacement
+        add(Box.createVerticalStrut(10));
         add(createDataSection());
-        add(Box.createVerticalStrut(10)); // Réduire l'espacement
-        add(createRoutesSection());
-        add(Box.createVerticalStrut(10)); // Réduire l'espacement
+        add(Box.createVerticalStrut(10));
         add(createButtonSection());
     }
 
@@ -39,12 +39,12 @@ public class ControlPanel extends JPanel {
         panel.setBackground(new Color(240, 248, 255));
 
         JLabel title = new JLabel("SYSTÈME DE LIVRAISON - TABLEAU DE BORD");
-        title.setFont(new Font("Arial", Font.BOLD, 14)); // Réduire la taille
+        title.setFont(new Font("Arial", Font.BOLD, 14));
         title.setForeground(new Color(0, 70, 140));
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel subtitle = new JLabel("Visualisation des livraisons en temps réel");
-        subtitle.setFont(new Font("Arial", Font.ITALIC, 10)); // Réduire la taille
+        JLabel subtitle = new JLabel("Visualisation des livraisons en temps réel ");
+        subtitle.setFont(new Font("Arial", Font.ITALIC, 10));
         subtitle.setForeground(new Color(100, 100, 100));
         subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -55,7 +55,7 @@ public class ControlPanel extends JPanel {
     }
 
     private JPanel createDataSection() {
-        JPanel panel = new JPanel(new GridLayout(1, 3, 10, 0)); // Réduire l'espacement
+        JPanel panel = new JPanel(new GridLayout(1, 3, 10, 0));
         panel.setBackground(new Color(240, 248, 255));
 
         panel.add(createEntityPanel("MAGASINS", GridData.getStores(),
@@ -75,15 +75,15 @@ public class ControlPanel extends JPanel {
         panel.setBackground(bgColor);
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(borderColor, 2),
-                BorderFactory.createEmptyBorder(5, 8, 5, 8))); // Réduire le padding
+                BorderFactory.createEmptyBorder(5, 8, 5, 8)));
 
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 11)); // Réduire la taille
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 11));
         titleLabel.setForeground(borderColor.darker());
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         panel.add(titleLabel);
-        panel.add(Box.createVerticalStrut(5)); // Réduire l'espacement
+        panel.add(Box.createVerticalStrut(5));
 
         for (Object entity : entities) {
             String text = "";
@@ -96,10 +96,10 @@ public class ControlPanel extends JPanel {
             }
 
             JLabel item = new JLabel(text);
-            item.setFont(new Font("Arial", Font.PLAIN, 10)); // Réduire la taille
+            item.setFont(new Font("Arial", Font.PLAIN, 10));
             item.setAlignmentX(Component.LEFT_ALIGNMENT);
             panel.add(item);
-            panel.add(Box.createVerticalStrut(2)); // Réduire l'espacement
+            panel.add(Box.createVerticalStrut(2));
         }
 
         return panel;
@@ -111,117 +111,58 @@ public class ControlPanel extends JPanel {
         panel.setBackground(new Color(255, 240, 220));
         panel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(210, 140, 70), 2),
-                BorderFactory.createEmptyBorder(5, 8, 5, 8))); // Réduire le padding
+                BorderFactory.createEmptyBorder(5, 8, 5, 8)));
 
         JLabel titleLabel = new JLabel("TUNNELS");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 11)); // Réduire la taille
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 11));
         titleLabel.setForeground(new Color(160, 100, 40));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         panel.add(titleLabel);
-        panel.add(Box.createVerticalStrut(5)); // Réduire l'espacement
+        panel.add(Box.createVerticalStrut(5));
 
         for (Tunnel tunnel : GridData.getTunnels()) {
             String text = String.format("• %s: %s → %s",
                     tunnel.getId(), tunnel.getEntrance(), tunnel.getExit());
             JLabel item = new JLabel(text);
-            item.setFont(new Font("Arial", Font.PLAIN, 10)); // Réduire la taille
+            item.setFont(new Font("Arial", Font.PLAIN, 10));
             item.setAlignmentX(Component.LEFT_ALIGNMENT);
             panel.add(item);
-            panel.add(Box.createVerticalStrut(2)); // Réduire l'espacement
+            panel.add(Box.createVerticalStrut(2));
         }
 
         return panel;
-    }
-
-    private JPanel createRoutesSection() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(255, 250, 220));
-        panel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(218, 165, 32), 2),
-                BorderFactory.createEmptyBorder(5, 8, 5, 8))); // Réduire le padding
-
-        JLabel titleLabel = new JLabel("PLAN DE LIVRAISON - CHEMINS PROGRAMMÉS");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 11)); // Réduire la taille
-        titleLabel.setForeground(new Color(160, 120, 40));
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-
-        JPanel routesPanel = new JPanel(new GridLayout(2, 2, 8, 8)); // Réduire l'espacement
-        routesPanel.setBackground(new Color(255, 253, 240));
-        routesPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5)); // Réduire le padding
-
-        String[][] routes = {
-                { "Store (1,1) → Customer (4,3)", "right,down,right,down,down,left", "🔵" },
-                { "Store (1,1) → Customer (2,6)", "right,right,right,down,down,down", "🟣" },
-                { "Store (6,5) → Customer (4,3)", "left,up,up,right,tunnel,right", "🔴" },
-                { "Store (6,5) → Customer (2,6)", "left,left,up,up,left,down", "🟢" }
-        };
-
-        Color[] routeColors = { Color.BLUE, Color.MAGENTA, Color.RED, Color.GREEN };
-
-        for (int i = 0; i < routes.length; i++) {
-            routesPanel.add(createRouteCard(routes[i], routeColors[i]));
-        }
-
-        panel.add(titleLabel, BorderLayout.NORTH);
-        panel.add(routesPanel, BorderLayout.CENTER);
-
-        return panel;
-    }
-
-    private JPanel createRouteCard(String[] routeData, Color color) {
-        JPanel card = new JPanel(new BorderLayout());
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(color, 2),
-                BorderFactory.createEmptyBorder(4, 6, 4, 6))); // Réduire le padding
-
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(Color.WHITE);
-
-        JLabel iconLabel = new JLabel(routeData[2]);
-        iconLabel.setFont(new Font("Arial", Font.PLAIN, 11)); // Réduire la taille
-
-        JLabel routeHeader = new JLabel(routeData[0]);
-        routeHeader.setFont(new Font("Arial", Font.BOLD, 10)); // Réduire la taille
-        routeHeader.setForeground(color);
-
-        headerPanel.add(iconLabel, BorderLayout.WEST);
-        headerPanel.add(routeHeader, BorderLayout.CENTER);
-
-        JTextArea directions = new JTextArea("Chemin: " + routeData[1]);
-        directions.setFont(new Font("Monospaced", Font.PLAIN, 8)); // Réduire la taille
-        directions.setBackground(new Color(250, 250, 250));
-        directions.setEditable(false);
-        directions.setLineWrap(true);
-        directions.setWrapStyleWord(true);
-        directions.setMargin(new Insets(2, 2, 2, 2)); // Réduire les marges
-        directions.setRows(2); // Limiter à 2 lignes
-
-        card.add(headerPanel, BorderLayout.NORTH);
-        card.add(directions, BorderLayout.CENTER);
-
-        return card;
     }
 
     private JPanel createButtonSection() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0)); // Réduire l'espacement
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
         panel.setBackground(new Color(240, 248, 255));
 
+        // Bouton Retour
+        JButton backBtn = GraphicsUtils.createStyledButton(
+                "← Retour",
+                new Color(100, 100, 100),
+                Color.WHITE,
+                new Font("Arial", Font.BOLD, 12));
+        backBtn.addActionListener(e -> mainApp.showWelcomePage());
+
+        // Bouton Visualiser
         JButton visualizeBtn = GraphicsUtils.createStyledButton(
-                "Visualiser le Trajet",
+                "Visualiser",
                 new Color(70, 130, 180),
                 Color.WHITE,
-                new Font("Arial", Font.BOLD, 12)); // Réduire la taille
+                new Font("Arial", Font.BOLD, 12));
         visualizeBtn.addActionListener(e -> visualizePaths());
 
+        // Bouton Réinitialiser
         JButton resetBtn = GraphicsUtils.createStyledButton(
                 "Réinitialiser",
                 new Color(220, 100, 100),
                 Color.WHITE,
-                new Font("Arial", Font.BOLD, 12)); // Réduire la taille
+                new Font("Arial", Font.BOLD, 12));
         resetBtn.addActionListener(e -> gridPanel.reset());
 
+        panel.add(backBtn);
         panel.add(visualizeBtn);
         panel.add(resetBtn);
 
@@ -231,22 +172,28 @@ public class ControlPanel extends JPanel {
     private void visualizePaths() {
         gridPanel.reset();
 
-        DeliveryInfo[] deliveries = {
-                new DeliveryInfo(new Position(1, 1), new Position(4, 3),
-                        "right,down,right,down,down,left"),
-                new DeliveryInfo(new Position(1, 1), new Position(2, 6),
-                        "right,right,right,down,down,down"),
-                new DeliveryInfo(new Position(6, 5), new Position(4, 3),
-                        "left,up,up,right,tunnel,right"),
-                new DeliveryInfo(new Position(6, 5), new Position(2, 6),
-                        "left,left,up,up,left,down")
-        };
+        // Note: Ces chemins sont des exemples
+        // Dans une vraie application, ils viendraient du backend
+        if (GridData.getStores().size() >= 2 && GridData.getCustomers().size() >= 2) {
+            Store s1 = GridData.getStores().get(0);
+            Store s2 = GridData.getStores().get(1);
+            Customer c1 = GridData.getCustomers().get(0);
+            Customer c2 = GridData.getCustomers().get(1);
 
-        for (DeliveryInfo delivery : deliveries) {
-            List<Position> path = gridPanel.computePath(
-                    delivery.getStartPosition(),
-                    delivery.getDirections());
-            gridPanel.addPath(path);
+            // Chemins de démonstration simples (à remplacer par l'algorithme réel)
+            DeliveryInfo[] deliveries = {
+                    new DeliveryInfo(s1.getPosition(), c1.getPosition(), "right,down,right,down"),
+                    new DeliveryInfo(s1.getPosition(), c2.getPosition(), "right,right,right,down"),
+                    new DeliveryInfo(s2.getPosition(), c1.getPosition(), "left,up,left,up"),
+                    new DeliveryInfo(s2.getPosition(), c2.getPosition(), "left,left,down,down")
+            };
+
+            for (DeliveryInfo delivery : deliveries) {
+                List<Position> path = gridPanel.computePath(
+                        delivery.getStartPosition(),
+                        delivery.getDirections());
+                gridPanel.addPath(path);
+            }
         }
     }
 }
