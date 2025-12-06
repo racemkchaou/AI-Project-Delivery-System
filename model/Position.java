@@ -1,3 +1,7 @@
+package model;
+
+import data.GridData;
+
 public class Position {
 
     public int x; // Coordonnée horizontale (colonne)
@@ -14,21 +18,17 @@ public class Position {
 
         switch (direction.toLowerCase()) {
             case "up":
-                newY = y - 1; // up = décrémenter y
+                newY = y - 1;
                 break;
-
             case "down":
-                newY = y + 1; // down = incrémenter y
+                newY = y + 1;
                 break;
-
             case "left":
-                newX = x - 1; // left = décrémenter x
+                newX = x - 1;
                 break;
-
             case "right":
-                newX = x + 1; // right = incrémenter x
+                newX = x + 1;
                 break;
-
             default:
                 return this;
         }
