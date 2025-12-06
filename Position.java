@@ -1,45 +1,44 @@
 public class Position {
 
-    public int row;
-    public int col;
+    public int x; // Coordonnée horizontale (colonne)
+    public int y; // Coordonnée verticale (ligne)
 
-    public Position(int row, int col) {
-        this.row = row;
-        this.col = col;
+    public Position(int x, int y) {
+        this.x = x;
+        this.y = y;
     }
 
     public Position move(String direction) {
-        int newRow = row;
-        int newCol = col;
+        int newX = x;
+        int newY = y;
 
         switch (direction.toLowerCase()) {
             case "up":
-                newRow = row - 1;
+                newY = y - 1; // up = décrémenter y
                 break;
 
             case "down":
-                newRow = row + 1;
+                newY = y + 1; // down = incrémenter y
                 break;
 
             case "left":
-                newCol = col - 1;
+                newX = x - 1; // left = décrémenter x
                 break;
 
             case "right":
-                newCol = col + 1;
+                newX = x + 1; // right = incrémenter x
                 break;
 
             default:
-                return this; // Mouvement non reconnu → aucune action
+                return this;
         }
 
-        // 🔥 Vérification des limites de la grille
-        if (newRow < 0 || newRow >= GridData.ROWS || newCol < 0 || newCol >= GridData.COLS) {
-            // On reste à la position actuelle si mouvement interdit
+        // Vérification des limites
+        if (newX < 0 || newX >= GridData.COLS || newY < 0 || newY >= GridData.ROWS) {
             return this;
         }
 
-        return new Position(newRow, newCol);
+        return new Position(newX, newY);
     }
 
     @Override
@@ -49,16 +48,16 @@ public class Position {
         if (!(obj instanceof Position))
             return false;
         Position p = (Position) obj;
-        return row == p.row && col == p.col;
+        return x == p.x && y == p.y;
     }
 
     @Override
     public int hashCode() {
-        return row * 31 + col;
+        return x * 31 + y;
     }
 
     @Override
     public String toString() {
-        return "(" + row + "," + col + ")";
+        return "(" + x + "," + y + ")";
     }
 }

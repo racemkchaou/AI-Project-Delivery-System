@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 // Classes de base
 class Store {
@@ -43,8 +44,6 @@ class Tunnel {
 public class WorkingDeliveryApp extends JFrame {
 
     private GridPanel gridPanel;
-    private JComboBox<String> storeCombo, customerCombo;
-    private JTextArea directionsArea;
 
     public WorkingDeliveryApp() {
         setTitle("Système de Livraison - FONCTIONNEL");
@@ -58,124 +57,321 @@ public class WorkingDeliveryApp extends JFrame {
     private void initUI() {
         gridPanel = new GridPanel();
 
-        // Contrôles
-        storeCombo = new JComboBox<>();
-        customerCombo = new JComboBox<>();
-        updateCombos();
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(new Color(245, 245, 245));
 
-        directionsArea = new JTextArea(3, 30);
-        directionsArea.setText("right,down,right,tunnel,left,down");
+        JPanel controlPanel = createEnhancedControlPanel();
 
-        JButton visualizeBtn = new JButton("Visualiser");
-        visualizeBtn.setBackground(new Color(70, 130, 180));
-        visualizeBtn.setForeground(Color.WHITE);
-        visualizeBtn.addActionListener(e -> visualize());
+        JScrollPane scrollPane = new JScrollPane(gridPanel);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JButton resetBtn = new JButton("Reset");
-        resetBtn.setBackground(new Color(220, 100, 100));
-        resetBtn.setForeground(Color.WHITE);
-        resetBtn.addActionListener(e -> gridPanel.reset());
+        mainPanel.add(controlPanel, BorderLayout.NORTH);
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
 
-        // Layout
-        JPanel controlPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 2;
-        controlPanel.add(new JLabel("TEST IMMÉDIAT - Tout devrait être visible"), gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        controlPanel.add(new JLabel("Magasin:"), gbc);
-        gbc.gridx = 1;
-        gbc.gridy = 1;
-        controlPanel.add(storeCombo, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        controlPanel.add(new JLabel("Client:"), gbc);
-        gbc.gridx = 1;
-        gbc.gridy = 2;
-        controlPanel.add(customerCombo, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        controlPanel.add(new JLabel("Directions:"), gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.gridwidth = 2;
-        controlPanel.add(new JScrollPane(directionsArea), gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        gbc.gridwidth = 1;
-        controlPanel.add(visualizeBtn, gbc);
-        gbc.gridx = 1;
-        gbc.gridy = 5;
-        controlPanel.add(resetBtn, gbc);
-
-        setLayout(new BorderLayout());
-        add(controlPanel, BorderLayout.NORTH);
-        add(new JScrollPane(gridPanel), BorderLayout.CENTER);
+        setContentPane(mainPanel);
     }
 
-    private void updateCombos() {
-        storeCombo.removeAllItems();
-        for (Store s : GridData.stores) {
-            storeCombo.addItem(s.id + " @ " + s.pos);
+    private JPanel createEnhancedControlPanel() {
+        JPanel controlPanel = new JPanel();
+        controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
+        controlPanel.setBackground(new Color(240, 248, 255));
+        controlPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(70, 130, 180), 2),
+                BorderFactory.createEmptyBorder(15, 15, 15, 15)));
+
+        JLabel title = new JLabel("SYSTÈME DE LIVRAISON - TABLEAU DE BORD");
+        title.setFont(new Font("Arial", Font.BOLD, 18));
+        title.setForeground(new Color(0, 70, 140));
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel subtitle = new JLabel("Visualisation des livraisons en temps réel");
+        subtitle.setFont(new Font("Arial", Font.ITALIC, 12));
+        subtitle.setForeground(new Color(100, 100, 100));
+        subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        controlPanel.add(title);
+        controlPanel.add(Box.createVerticalStrut(5));
+        controlPanel.add(subtitle);
+        controlPanel.add(Box.createVerticalStrut(20));
+
+        JPanel dataPanel = new JPanel(new GridLayout(1, 3, 20, 0));
+        dataPanel.setBackground(new Color(240, 248, 255));
+
+        dataPanel.add(createEnhancedEntityPanel("MAGASINS", GridData.stores,
+                new Color(220, 240, 255), new Color(70, 130, 180)));
+
+        dataPanel.add(createEnhancedEntityPanel("CLIENTS", GridData.customers,
+                new Color(220, 255, 220), new Color(60, 140, 60)));
+
+        dataPanel.add(createEnhancedTunnelPanel());
+
+        controlPanel.add(dataPanel);
+        controlPanel.add(Box.createVerticalStrut(20));
+
+        JPanel directionsPanel = new JPanel(new BorderLayout());
+        directionsPanel.setBackground(new Color(255, 250, 220));
+        directionsPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(218, 165, 32), 2),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(new Color(255, 250, 220));
+
+        JLabel titleLabel = new JLabel("PLAN DE LIVRAISON - CHEMINS PROGRAMMÉS");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        titleLabel.setForeground(new Color(160, 120, 40));
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        titlePanel.add(titleLabel, BorderLayout.NORTH);
+        directionsPanel.add(titlePanel, BorderLayout.NORTH);
+
+        JPanel routesPanel = new JPanel();
+        routesPanel.setLayout(new GridLayout(2, 2, 10, 10));
+        routesPanel.setBackground(new Color(255, 253, 240));
+        routesPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        String[][] routes = {
+                { "Store (1,1) → Customer (4,3)", "right,down,right,down,down,left", "🔵" },
+                { "Store (1,1) → Customer (2,6)", "right,right,right,down,down,down", "🟣" },
+                { "Store (6,5) → Customer (4,3)", "left,up,up,right,tunnel,right", "🔴" },
+                { "Store (6,5) → Customer (2,6)", "left,left,up,up,left,down", "🟢" }
+        };
+
+        Color[] routeColors = {
+                Color.BLUE,
+                Color.MAGENTA,
+                Color.RED,
+                Color.GREEN
+        };
+
+        for (int i = 0; i < routes.length; i++) {
+            JPanel routeCard = new JPanel(new BorderLayout());
+            routeCard.setBackground(Color.WHITE);
+            routeCard.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(routeColors[i], 2),
+                    BorderFactory.createEmptyBorder(8, 10, 8, 10)));
+
+            JPanel headerPanel = new JPanel(new BorderLayout());
+            headerPanel.setBackground(Color.WHITE);
+
+            JLabel iconLabel = new JLabel(routes[i][2]);
+            iconLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+
+            JLabel routeHeader = new JLabel(routes[i][0]);
+            routeHeader.setFont(new Font("Arial", Font.BOLD, 12));
+            routeHeader.setForeground(routeColors[i]);
+
+            headerPanel.add(iconLabel, BorderLayout.WEST);
+            headerPanel.add(routeHeader, BorderLayout.CENTER);
+
+            JTextArea routeDirections = new JTextArea("Chemin: " + routes[i][1]);
+            routeDirections.setFont(new Font("Monospaced", Font.PLAIN, 10));
+            routeDirections.setBackground(new Color(250, 250, 250));
+            routeDirections.setEditable(false);
+            routeDirections.setLineWrap(true);
+            routeDirections.setWrapStyleWord(true);
+            routeDirections.setMargin(new Insets(5, 5, 5, 5));
+
+            routeCard.add(headerPanel, BorderLayout.NORTH);
+            routeCard.add(new JScrollPane(routeDirections), BorderLayout.CENTER);
+
+            routesPanel.add(routeCard);
         }
-        customerCombo.removeAllItems();
-        for (Customer c : GridData.customers) {
-            customerCombo.addItem(c.id + " @ " + c.pos);
+
+        directionsPanel.add(routesPanel, BorderLayout.CENTER);
+
+        controlPanel.add(directionsPanel);
+        controlPanel.add(Box.createVerticalStrut(20));
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        buttonPanel.setBackground(new Color(240, 248, 255));
+
+        JButton visualizeBtn = createStyledButton("Visualiser le Trajet",
+                new Color(70, 130, 180), Color.WHITE, new Font("Arial", Font.BOLD, 14));
+        visualizeBtn.addActionListener(e -> visualize());
+
+        JButton resetBtn = createStyledButton("Réinitialiser",
+                new Color(220, 100, 100), Color.WHITE, new Font("Arial", Font.BOLD, 14));
+        resetBtn.addActionListener(e -> gridPanel.reset());
+
+        buttonPanel.add(visualizeBtn);
+        buttonPanel.add(resetBtn);
+
+        controlPanel.add(buttonPanel);
+
+        return controlPanel;
+    }
+
+    private JPanel createEnhancedEntityPanel(String title, List<?> entities,
+            Color bgColor, Color borderColor) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(bgColor);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(borderColor, 2),
+                BorderFactory.createEmptyBorder(10, 15, 10, 15)));
+
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        titleLabel.setForeground(borderColor.darker());
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        panel.add(titleLabel);
+        panel.add(Box.createVerticalStrut(10));
+
+        for (Object entity : entities) {
+            String text = "";
+            if (entity instanceof Store) {
+                Store s = (Store) entity;
+                text = String.format("• %s → Position: %s", s.id, s.pos);
+            } else if (entity instanceof Customer) {
+                Customer c = (Customer) entity;
+                text = String.format("• %s → Position: %s", c.id, c.pos);
+            }
+
+            JLabel item = new JLabel(text);
+            item.setFont(new Font("Arial", Font.PLAIN, 12));
+            item.setAlignmentX(Component.LEFT_ALIGNMENT);
+            panel.add(item);
+            panel.add(Box.createVerticalStrut(5));
         }
+
+        return panel;
+    }
+
+    private JPanel createEnhancedTunnelPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(new Color(255, 240, 220));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(210, 140, 70), 2),
+                BorderFactory.createEmptyBorder(10, 15, 10, 15)));
+
+        JLabel titleLabel = new JLabel("TUNNELS");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        titleLabel.setForeground(new Color(160, 100, 40));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        panel.add(titleLabel);
+        panel.add(Box.createVerticalStrut(10));
+
+        for (Tunnel t : GridData.tunnels) {
+            String text = String.format("• %s: %s → %s",
+                    t.id, t.entrance, t.exit);
+            JLabel item = new JLabel(text);
+            item.setFont(new Font("Arial", Font.PLAIN, 12));
+            item.setAlignmentX(Component.LEFT_ALIGNMENT);
+            panel.add(item);
+            panel.add(Box.createVerticalStrut(5));
+        }
+
+        return panel;
+    }
+
+    private JButton createStyledButton(String text, Color bgColor,
+            Color fgColor, Font font) {
+        JButton button = new JButton(text);
+        button.setBackground(bgColor);
+        button.setForeground(fgColor);
+        button.setFont(font);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(bgColor.darker(), 2),
+                BorderFactory.createEmptyBorder(10, 20, 10, 20)));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor.brighter());
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(bgColor);
+            }
+        });
+
+        return button;
     }
 
     private void visualize() {
-        gridPanel.reset(); // Effacer les anciens dessins
+        gridPanel.reset();
 
-        String dirs = directionsArea.getText().trim();
+        List<DeliveryInfo> deliveries = getDeliveriesFromBackend();
 
-        // Pour chaque store
-        for (Store s : GridData.stores) {
+        for (DeliveryInfo delivery : deliveries) {
+            java.util.List<Position> p = gridPanel.computePath(
+                    delivery.startPos,
+                    delivery.directions);
 
-            // Pour chaque customer
-            for (Customer c : GridData.customers) {
-
-                // Calculer le path
-                java.util.List<Position> p = gridPanel.computePath(s.id, dirs);
-
-                // Ajouter ce path au dessin
-                gridPanel.addPath(p);
-            }
+            gridPanel.addPath(p);
         }
+    }
+
+    class DeliveryInfo {
+        Position startPos;
+        Position endPos;
+        String directions;
+
+        DeliveryInfo(Position startPos, Position endPos, String directions) {
+            this.startPos = startPos;
+            this.endPos = endPos;
+            this.directions = directions;
+        }
+    }
+
+    private List<DeliveryInfo> getDeliveriesFromBackend() {
+        List<DeliveryInfo> deliveries = new ArrayList<>();
+
+        // Store (1,1) → Customer (4,3)
+        deliveries.add(new DeliveryInfo(
+                new Position(1, 1),
+                new Position(4, 3),
+                "right,down,right,down,down,left"));
+
+        // Store (1,1) → Customer (2,6)
+        deliveries.add(new DeliveryInfo(
+                new Position(1, 1),
+                new Position(2, 6),
+                "right,right,right,down,down,down"));
+
+        // Store (6,5) → Customer (4,3)
+        deliveries.add(new DeliveryInfo(
+                new Position(6, 5),
+                new Position(4, 3),
+                "left,up,up,right,tunnel,right"));
+
+        // Store (6,5) → Customer (2,6)
+        deliveries.add(new DeliveryInfo(
+                new Position(6, 5),
+                new Position(2, 6),
+                "left,left,up,up,left,down"));
+
+        return deliveries;
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new WorkingDeliveryApp().setVisible(true);
+            WorkingDeliveryApp app = new WorkingDeliveryApp();
+            app.setDefaultCloseOperation(EXIT_ON_CLOSE);
+            app.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            app.setVisible(true);
         });
     }
 
-    // Panel d'affichage
     class GridPanel extends JPanel {
         private java.util.List<java.util.List<Position>> allPaths = new ArrayList<>();
-        private Position truck = null;
+        private java.util.List<Position> truckPositions = new ArrayList<>();
+
         private static final int CELL = 50;
         private static final int OFFSET = 50;
 
         public GridPanel() {
-            setBackground(Color.WHITE);
-            // Preferred size: leave a margin (OFFSET on both sides) and place intersections
-            // at OFFSET + x*CELL
-            int width = OFFSET * 2 + (GridData.COLS - 1) * CELL;
-            int height = OFFSET * 2 + (GridData.ROWS - 1) * CELL;
-            setPreferredSize(new Dimension(width, height));
+            setBackground(new Color(240, 240, 240));
+
+            int gridWidth = OFFSET * 2 + (GridData.COLS - 1) * CELL;
+            int gridHeight = OFFSET * 2 + (GridData.ROWS - 1) * CELL;
+
+            setPreferredSize(new Dimension(gridWidth, gridHeight));
         }
 
         @Override
@@ -183,24 +379,26 @@ public class WorkingDeliveryApp extends JFrame {
             super.paintComponent(g);
             Graphics2D g2d = (Graphics2D) g;
 
-            // 1. Coûts des segments (dessinés en premier)
             drawCosts(g2d);
 
-            // 2. Grille
             g2d.setColor(Color.LIGHT_GRAY);
             g2d.setStroke(new BasicStroke(1));
-            // draw horizontal grid lines (one for each row of intersections)
+
+            int gridStartX = OFFSET;
+            int gridStartY = OFFSET;
+            int gridWidth = (GridData.COLS - 1) * CELL;
+            int gridHeight = (GridData.ROWS - 1) * CELL;
+
             for (int i = 0; i < GridData.ROWS; i++) {
-                int y = OFFSET + i * CELL;
-                g2d.drawLine(OFFSET, y, OFFSET + (GridData.COLS - 1) * CELL, y);
-            }
-            // draw vertical grid lines (one for each column of intersections)
-            for (int i = 0; i < GridData.COLS; i++) {
-                int x = OFFSET + i * CELL;
-                g2d.drawLine(x, OFFSET, x, OFFSET + (GridData.ROWS - 1) * CELL);
+                int y = gridStartY + i * CELL;
+                g2d.drawLine(gridStartX, y, gridStartX + gridWidth, y);
             }
 
-            // 3. Points d'intersection
+            for (int i = 0; i < GridData.COLS; i++) {
+                int x = gridStartX + i * CELL;
+                g2d.drawLine(x, gridStartY, x, gridStartY + gridHeight);
+            }
+
             g2d.setColor(Color.BLACK);
             for (int y = 0; y < GridData.ROWS; y++) {
                 for (int x = 0; x < GridData.COLS; x++) {
@@ -208,7 +406,6 @@ public class WorkingDeliveryApp extends JFrame {
                     int py = OFFSET + y * CELL;
                     g2d.fillOval(px - 4, py - 4, 8, 8);
 
-                    // Coordonnées
                     g2d.setColor(Color.GRAY);
                     g2d.setFont(new Font("Arial", Font.PLAIN, 9));
                     g2d.drawString(x + "," + y, px + 6, py - 6);
@@ -216,36 +413,35 @@ public class WorkingDeliveryApp extends JFrame {
                 }
             }
 
-            // 4. Entités
             drawStores(g2d);
             drawCustomers(g2d);
             drawTunnels(g2d);
 
-            // 5. Chemin avec flèches
-            // 5. Tous les chemins (each path is a list of Positions)
             if (!allPaths.isEmpty()) {
-                // donner une couleur différente par chemin si tu veux (ici on alterne deux
-                // couleurs)
                 Color[] palette = { Color.BLUE, Color.MAGENTA, Color.RED, Color.CYAN, Color.ORANGE };
                 int idx = 0;
+
+                truckPositions.clear();
+
                 for (java.util.List<Position> path : allPaths) {
                     if (path.size() > 1) {
                         Color col = palette[idx % palette.length];
+
                         for (int i = 0; i < path.size() - 1; i++) {
                             Point p1 = toPoint(path.get(i));
                             Point p2 = toPoint(path.get(i + 1));
                             drawArrow(g2d, p1, p2, col);
                         }
-                        // mettre à jour truck sur la dernière position du dernier chemin (optionnel)
-                        truck = path.get(path.size() - 1);
+
+                        Position lastPos = path.get(path.size() - 1);
+                        truckPositions.add(lastPos);
                     }
                     idx++;
                 }
             }
 
-            // 6. Camion
-            if (truck != null) {
-                Point p = toPoint(truck);
+            for (Position truckPos : truckPositions) {
+                Point p = toPoint(truckPos);
                 g2d.setColor(Color.YELLOW);
                 g2d.fillOval(p.x - 10, p.y - 10, 20, 20);
                 g2d.setColor(Color.BLACK);
@@ -254,12 +450,9 @@ public class WorkingDeliveryApp extends JFrame {
             }
         }
 
-        // Méthode pour dessiner les coûts
         private void drawCosts(Graphics2D g2d) {
             g2d.setFont(new Font("Arial", Font.BOLD, 12));
 
-            // Coûts des segments horizontaux (de chaque intersection vers la droite)
-            // itérer exactement sur ROWS x (COLS - 1)
             for (int y = 0; y < GridData.ROWS; y++) {
                 for (int x = 0; x < GridData.COLS - 1; x++) {
                     int cost = GridData.H_COSTS[y][x];
@@ -268,14 +461,12 @@ public class WorkingDeliveryApp extends JFrame {
                     int yPos = OFFSET + y * CELL;
 
                     int centerX = (x1 + x2) / 2;
-                    int centerY = yPos - 8; // Un peu plus haut pour éviter l'intersection
+                    int centerY = yPos;
 
-                    drawCostText(g2d, String.valueOf(cost), centerX, centerY, getCostColor(cost));
+                    drawCostOnHorizontalLine(g2d, String.valueOf(cost), centerX, centerY, getCostColor(cost));
                 }
             }
 
-            // Coûts des segments verticaux (de chaque intersection vers le bas)
-            // itérer exactement sur (ROWS - 1) x COLS
             for (int y = 0; y < GridData.ROWS - 1; y++) {
                 for (int x = 0; x < GridData.COLS; x++) {
                     int cost = GridData.V_COSTS[y][x];
@@ -283,15 +474,46 @@ public class WorkingDeliveryApp extends JFrame {
                     int y1 = OFFSET + y * CELL;
                     int y2 = OFFSET + (y + 1) * CELL;
 
-                    int centerX = xPos + 8; // Un peu à droite pour éviter l'intersection
+                    int centerX = xPos;
                     int centerY = (y1 + y2) / 2;
 
-                    drawCostText(g2d, String.valueOf(cost), centerX, centerY, getCostColor(cost));
+                    drawCostOnVerticalLine(g2d, String.valueOf(cost), centerX, centerY, getCostColor(cost));
                 }
             }
         }
 
-        // Méthode pour obtenir la couleur selon le coût
+        private void drawCostOnHorizontalLine(Graphics2D g2d, String text, int x, int y, Color color) {
+            FontMetrics fm = g2d.getFontMetrics();
+
+            if (text.equals("0")) {
+                drawBlockSign(g2d, x, y, color);
+            } else {
+                int textWidth = fm.stringWidth(text);
+
+                g2d.setColor(getBackground());
+                g2d.fillRect(x - textWidth / 2 - 2, y - 13, textWidth + 4, 16);
+
+                g2d.setColor(color);
+                g2d.drawString(text, x - textWidth / 2, y - 4);
+            }
+        }
+
+        private void drawCostOnVerticalLine(Graphics2D g2d, String text, int x, int y, Color color) {
+            FontMetrics fm = g2d.getFontMetrics();
+
+            if (text.equals("0")) {
+                drawBlockSign(g2d, x, y, color);
+            } else {
+                int textWidth = fm.stringWidth(text);
+
+                g2d.setColor(getBackground());
+                g2d.fillRect(x + 1, y - 7, textWidth + 4, 16);
+
+                g2d.setColor(color);
+                g2d.drawString(text, x + 3, y + 4);
+            }
+        }
+
         private Color getCostColor(int cost) {
             switch (cost) {
                 case 0:
@@ -309,28 +531,35 @@ public class WorkingDeliveryApp extends JFrame {
             }
         }
 
-        // Méthode utilitaire pour dessiner le texte du coût (sans rectangle)
-        private void drawCostText(Graphics2D g2d, String text, int x, int y, Color color) {
-            FontMetrics fm = g2d.getFontMetrics();
-            int textWidth = fm.stringWidth(text);
+        private void drawBlockSign(Graphics2D g2d, int x, int y, Color color) {
+            int size = 14;
 
-            // Dessiner le texte directement avec la couleur
-            g2d.setColor(color);
-            g2d.drawString(text, x - textWidth / 2, y);
+            Stroke originalStroke = g2d.getStroke();
+            Color originalColor = g2d.getColor();
+
+            g2d.setColor(Color.RED);
+            g2d.fillOval(x - size / 2, y - size / 2, size, size);
+
+            g2d.setColor(Color.WHITE);
+            g2d.setStroke(new BasicStroke(1));
+            g2d.drawOval(x - size / 2, y - size / 2, size, size);
+
+            g2d.setColor(Color.WHITE);
+            g2d.setStroke(new BasicStroke(2));
+            g2d.drawLine(x - size / 3, y - size / 3, x + size / 3, y + size / 3);
+
+            g2d.setStroke(originalStroke);
+            g2d.setColor(originalColor);
         }
 
-        // Méthode pour dessiner une flèche
         private void drawArrow(Graphics2D g2d, Point start, Point end, Color color) {
-            // Dessiner la ligne principale
             g2d.setColor(color);
             g2d.setStroke(new BasicStroke(3));
             g2d.drawLine(start.x, start.y, end.x, end.y);
 
-            // Calculer l'angle de la flèche
             double angle = Math.atan2(end.y - start.y, end.x - start.x);
             int arrowLength = 10;
 
-            // Dessiner la tête de flèche
             Polygon arrowHead = new Polygon();
             arrowHead.addPoint(end.x, end.y);
             arrowHead.addPoint(
@@ -347,7 +576,8 @@ public class WorkingDeliveryApp extends JFrame {
         }
 
         private Point toPoint(Position pos) {
-            return new Point(OFFSET + pos.col * CELL, OFFSET + pos.row * CELL);
+            // pos.x = horizontal (colonnes), pos.y = vertical (lignes)
+            return new Point(OFFSET + pos.x * CELL, OFFSET + pos.y * CELL);
         }
 
         private void drawStores(Graphics2D g2d) {
@@ -382,14 +612,12 @@ public class WorkingDeliveryApp extends JFrame {
                 Point p1 = toPoint(t.entrance);
                 Point p2 = toPoint(t.exit);
 
-                // Ligne
                 g2d.setColor(t.color);
                 Stroke dashed = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
                         0, new float[] { 9 }, 0);
                 g2d.setStroke(dashed);
                 g2d.drawLine(p1.x, p1.y, p2.x, p2.y);
 
-                // Cercles
                 g2d.setStroke(new BasicStroke(2));
                 g2d.fillOval(p1.x - 8, p1.y - 8, 16, 16);
                 g2d.fillOval(p2.x - 8, p2.y - 8, 16, 16);
@@ -400,22 +628,10 @@ public class WorkingDeliveryApp extends JFrame {
             }
         }
 
-        public java.util.List<Position> computePath(String storeId, String directions) {
-
+        public java.util.List<Position> computePath(Position startPos, String directions) {
             java.util.List<Position> path = new ArrayList<>();
 
-            // Trouver le store de départ
-            Store start = null;
-            for (Store s : GridData.stores) {
-                if (s.id.equals(storeId)) {
-                    start = s;
-                    break;
-                }
-            }
-            if (start == null)
-                return path;
-
-            Position current = start.pos;
+            Position current = startPos;
             path.add(current);
 
             String[] moves = directions.split(",");
@@ -440,6 +656,7 @@ public class WorkingDeliveryApp extends JFrame {
 
         public void reset() {
             allPaths.clear();
+            truckPositions.clear();
             repaint();
         }
 
@@ -447,6 +664,5 @@ public class WorkingDeliveryApp extends JFrame {
             allPaths.add(p);
             repaint();
         }
-
     }
 }

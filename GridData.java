@@ -2,16 +2,12 @@ import java.awt.Color;
 import java.util.*;
 
 public class GridData {
-    // Taille en nombre d'INTERSECTIONS
+
     public static int ROWS = 8; // 8 intersections verticales (indices 0..7)
     public static int COLS = 8; // 8 intersections horizontales (indices 0..7)
 
     // Coûts des segments - DIMENSIONS CORRECTES
-    // Horizontal: ROWS x (COLS - 1) -> chaque intersection (r,c) a une arête vers
-    // la droite si c < COLS-1
     public static int[][] H_COSTS = new int[ROWS][COLS - 1];
-    // Vertical: (ROWS - 1) x COLS -> chaque intersection (r,c) a une arête vers le
-    // bas si r < ROWS-1
     public static int[][] V_COSTS = new int[ROWS - 1][COLS];
 
     // Entités
@@ -48,8 +44,8 @@ public class GridData {
 
         // Ajouter des entités de TEST VISIBLE (veiller à rester dans 0..ROWS-1 /
         // 0..COLS-1)
-        stores.add(new Store(new Position(1, 1), "S1", Color.RED));
-        stores.add(new Store(new Position(5, 6), "S2", Color.RED));
+        stores.add(new Store(new Position(1, 1), "S1", Color.GRAY));
+        stores.add(new Store(new Position(5, 6), "S2", Color.GRAY));
 
         customers.add(new Customer(new Position(3, 4), "C1", Color.GREEN));
         customers.add(new Customer(new Position(6, 2), "C2", Color.GREEN));
